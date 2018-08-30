@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Applycation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css">
+    <link rel="stylesheet" href="../public/css/main.css">
+    <!-- <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head>
+
+<body>
+    <div id="chat-app">
+        <div class="has-text-centered" id="chat">
+            <section class="hero is-success">
+                <div class="hero-body">
+                    <div class="container">
+                        <h1 class="title">Chat</h1>
+                        <h2>Chat Application with Node.js + socket.io</h2>
+                    </div>
+                </div>
+            </section>
+            <section class="section chat-container">
+                <div class="container">
+                    <div class="columns">
+                        <div class="box column is-8 is-offset-2"></div>
+                    </div>
+                </div>
+            </section>
+            <h2 class="title">Chatbox</h2>
+            <div class="chat-messages has-text-left">
+                <ul id="chat-messages"></ul>
+            </div>
+            <form class="form-chat">
+                <div class="field has-addons"></div>
+                <p class="control"><input class="input" type="text" value="Client 1" id="name"></p>
+                <p class="control is-expanded"><input class="input" type="text" placeholder="Try to say something" id="message"></p>
+                <p class="control button-post"><input class="button is-success" type="submit" value="Post"></p>
+            </form>
+        </div>
+    </div>
+    <footer>
+        <div class="container">
+            <div class="content"></div>
+        </div>
+    </footer>
+    <script>
+        
+        $('form').submit(function() {
+            const name = $('#name').val();
+            const message = $('#message').val();
+            const socket = io();
+            console.log('submit-form');
+            $.ajax({
+                url: "http://localhost:5555/sendmsg",
+                type: "POST",
+                dataType: "json",
+                data: {
+                    name: name,
+                    message: message,
+                    chatter: 'chatter'
+                },
+                success: (res) => {
+                    $('#message').val('');
+                    console.log('success: ', message);
+                    socket.on('chatter', (message) => {
+                        $('#chat-messages').append($('<li>').text(message))
+                    });
+                    //$('#chat-messages').append($('<li>').text(`${res.name} : ${res.message}`))
+                }
+            });
+            return false;
+        });
+        
+    </script>
+</body>
+
+</html>

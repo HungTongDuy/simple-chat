@@ -1,0 +1,15 @@
+.title {
+    color: rgba(0, 0, 0, 1);
+    font-size: 40px;
+    font-weight: 300;
+    margin-bottom: 24px;
+    text-align: center;
+}
+.login-form {
+    margin: 0 auto;
+    text-align: center;
+    margin-top: 70px;
+}
+.login-form input {
+    width: 300px!important;
+}

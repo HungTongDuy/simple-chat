@@ -15,7 +15,8 @@ ReactDOM.render(
     <Router history={createHistory()}>
         <Switch>
             <Route path="/" exact component={Home} />
-            <Route path="/login" component={Login} />
+            <Route path="/t/:conversationId" exact component={Home} />
+            <Route path="/login" exact component={Login} />
         </Switch>
     </Router>, 
     document.getElementById('root')

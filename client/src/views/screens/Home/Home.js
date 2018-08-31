@@ -1,9 +1,23 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
+import ReactDOM from 'react-dom'
 import './Home.css';
 import axios from 'axios';
+import io from 'socket.io-client';
+import { Container, Row, Col, Button, Input, Form, Alert } from 'reactstrap';
 
-import { Container, Row, Col, FormGroup, Label, Input, Form } from 'reactstrap';
+import MessageList from './MessageList';
+
+import { socket_key } from '../../../core/constants';
+
+
+const server = 'http://localhost'
+// const server = 'http://192.168.11.113'
+const port_client = 5002;
+const port_api = 5000;
+const url_client = server + ':' + port_client;
+const url_api = server + ':' + port_api;
+
+const socket = io.connect(url_api);
 
 class Home extends Component {
 
@@ -11,41 +25,151 @@ class Home extends Component {
         super(props);
         this.state = {
             data: [],
-            message: ''
+            composedMessage: {
+                value: 'Nhập tin nhắn...',
+                isEnter: false
+            },
+            conversation: []
         }
+
+        if(this.props.match.params) {
+            const conversationId = this.props.match.params.conversationId;
+            socket.emit(socket_key.ENTER_CONVERSATION, conversationId);
+        }
+        
+        socket.on(socket_key.REFRESH_MESSAGES, (data) => {
+            console.log('refresh messages constructor:', data);
+            if(this.props.match.params) {
+                const conversationId = this.props.match.params.conversationId;
+                if(conversationId) {
+                    axios.get(url_api + '/api/chat/' + conversationId, {
+                        headers : {
+                            "x-access-token": JSON.parse(localStorage.Auth).token
+                        }
+                    }).then((res) => {
+                        this.setState({
+                            conversation: res.data.conversation
+                        })
+                    })
+                }
+            }
+        });
     }
 
-    componentWillMount() {
+    // async getData() {
+    //     const res =  await axios.get('http://localhost:5000/api/chat/', { 
+    //         headers : {
+    //             "x-access-token": JSON.parse(localStorage.Auth).token
+    //         }
+    //     });
+    //     return await res;
+    // }
+
+    async componentWillMount() {
         if(!localStorage.Auth) {
-            window.location.href = 'http://localhost:5002/login';
+            window.location.href = url_client + '/login';
         } else {
 
-            axios.get('http://localhost:5000/api/chat/', { 
+            // await this.getData().then((res) => {
+            //     console.log('res.data', res);
+            //     this.setState({ data: res.data});
+            // })
+
+            axios.get(url_api + '/api/chat/', { 
                 headers : {
                     "x-access-token": JSON.parse(localStorage.Auth).token
                 }
             }).then((res) => {
-                this.setState({ data: res.data})
+                this.setState({ data: res.data });
+                
+                if(this.props.match.params) {
+                    const conversationId = this.props.match.params.conversationId;
+                    if(conversationId) {
+                        axios.get(url_api + '/api/chat/' + conversationId, {
+                            headers : {
+                                "x-access-token": JSON.parse(localStorage.Auth).token
+                            }
+                        }).then((res) => {
+                            this.setState({
+                                conversation: res.data.conversation
+                            })
+                        })
+                    }
+                }
             });
+        }
+    }
+
+    componentDidMount = () => {
+        if(this.props.match.params) {
+            console.log('scrollIntoView');
+            var n = this.state.conversation.length;
+            var objDiv = document.getElementById(n.toString());
+            // this.refs[30].scrollIntoView();
         }
     }
 
     handleChange = (e) => {
         this.setState({
-            message: e.target.value
+            composedMessage: e.target.value
+        })
+    }
+
+    handleSubmit = (e) => {
+        console.log('submit');
+        e.preventDefault();
+        if(this.props.match.params) {
+            const conversationId = this.props.match.params.conversationId;
+            axios.post(url_api + '/api/chat/' + conversationId, {
+                composedMessage: this.state.composedMessage.value
+            } ,{
+                headers : {
+                    "x-access-token": JSON.parse(localStorage.Auth).token
+                }
+            }).then((res) => {
+                if(res.status === 200) {
+                    console.log('status-200OK');
+                    socket.emit(socket_key.NEW_MESSAGE, conversationId);
+                    this.setState({
+                        composedMessage: {
+                            value: 'Nhập tin nhắn...'
+                        }
+                    })
+                }
+            })
+            
+        }
+
+    }
+
+    handleLogout = (e) => {
+        console.log('handleLogout');
+        localStorage.removeItem('Auth');
+        window.location.href = url_client + '/login';
+    }
+
+    handleClearPlaceholder = () => {
+        this.setState({
+            composedMessage: {
+                value: ''
+            }
         })
     }
 
     render() {
-        console.log('conversations: ', this.state);
         const conversations = this.state.data.conversations;
-
-        if(conversations === undefined) {
+        const conversation = this.state.conversation;
+        const composedMessage = this.state.composedMessage;
+        if(conversations === undefined || conversation === []) {
             return (
                 <Container>
+                    <Row>
+                    </Row>
                 </Container>
-            )
+            );      
         }
+
+        const domenode = ReactDOM.findDOMNode(this.re)
 
         if(conversations !== undefined && conversations.length > 0) {
             return (
@@ -59,7 +183,7 @@ class Home extends Component {
                                 <ul aria-label="Danh sách cuộc trò chuyện" role="grid">
                                     {conversations.map((item, key) => {
                                         return (
-                                            <ItemUser key={key} conversation={item} />
+                                            <MessageList key={key} conversation={item} />
                                         )
                                     })}
                                     
@@ -68,16 +192,49 @@ class Home extends Component {
                         </Col>
                         <Col className="center-messenger">
                             <div className="banner-message-author" role="banner">
-                                <h1 className="title">Hung Tong</h1>
+                                <h1 className="title">{JSON.parse(localStorage.Auth).user.first_name + " " + JSON.parse(localStorage.Auth).user.last_name}</h1>
+                                <Button onClick={this.handleLogout} className="logout">Đăng xuất</Button>
                             </div>
                             <div className="content-message">
-                                <Form>
-                                    <div aria-label="Tin nhắn" className="message" role="region"></div>
-                                    <div aria-label="Tin nhắn mới" className="new-message" role="region">
-                                    <FormGroup>
-                                        <Input type="text" onChange={this.handleChange} name="new-message" id="new-message" placeholder="Nhập tin nhắn..." />
-                                    </FormGroup>
+                                <Form onSubmit={this.handleSubmit}>
+                                    <div aria-label="Tin nhắn" className="message" role="region">
+                                    {conversation.map((item, key) => {
+                                        const first_name = item.author.profile.first_name;
+                                        const last_name = item.author.profile.last_name;
+                                        const message = item.body;
+                                        let main_class = '';
+                                        let color = 'success';
+                                        if(item.author._id === JSON.parse(localStorage.Auth).user._id) {
+                                            main_class = 'main-user';
+                                            color = 'primary';
+                                        }
+                                        return (
+                                            <Alert key={key} id={key+1} ref={key} color={color} className={item._id}>
+                                                {first_name + " " + last_name + " : " + message}
+                                            </Alert>
+                                        );
+                                    })}
+                                    <Alert ref={30} className="dasd5asdsad7asd667d67ad5as">
+                                        {'sdaasdasdasdas'}
+                                    </Alert>
                                     </div>
+                                    <Col sm="12" md="12" aria-label="Tin nhắn mới" className="new-message" role="region">
+                                        <div className="form-new-message">
+                                            <Col sm="10" md="10">
+                                                <Input type="text" 
+                                                    onKeyDown={this.handleClearPlaceholder}
+                                                    //onClick={this.handleClearPlaceholder}
+                                                    onChange={this.handleChange} 
+                                                    name="new-message" 
+                                                    id="new-message" 
+                                                    value={composedMessage.value} 
+                                                />
+                                            </Col>
+                                            <Col sm="2" md="2">
+                                                <Button onSubmit={this.handleSubmit} color="primary" className="btn-send-message">Gửi</Button>
+                                            </Col>
+                                        </div>
+                                    </Col>
                                 </Form>
                             </div>
                         </Col>
@@ -89,34 +246,6 @@ class Home extends Component {
         }
         
     }
-}
-
-const ItemUser = (props) => {
-    const conversation = props.conversation[0];
-    console.log('conversation', conversation);
-    return(
-        <li className="_5l-3 _1ht1 item-user" role="row" tabIndex="-1">
-            <div className="_5l-3 _1ht5 item-user-content" id="row_header_id_user:100002617552652" role="gridcell" tabIndex="-1">
-                <a className="_1ht5 _2il3 _5l-3 _3itx item-content" role="link" tabIndex="-1" data-href="https://www.messenger.com/t/tuyet.trinh.9028">
-                    <div aria-hidden="true" className="_1qt3 _5l-3 item-avt" data-tooltip-content="Trinh Tống" data-hover="tooltip" data-tooltip-position="right" data-tooltip-alignh="center">
-                        <div className="_4ldz user-item">
-                            <div className="_4ld- user-item-content">
-                                <img src="https://scontent.fsgn2-3.fna.fbcdn.net/v/t1.0-1/p40x40/28467818_2242555562424955_7492271093481853012_n.jpg?_nc_cat=0&oh=d09044dfcaee1f7f07a948d27b2bef46&oe=5BF122F4" width="50" height="50" alt="" className="img" />
-                            </div>
-                        </div>
-                    </div>
-                    <div className="_1qt4 _5l-m item-name">
-                        <div className="_1qt5 _5l-3 item-user-name"><span className="_1ht6 user-name">{conversation.author.profile.first_name + " " + conversation.author.profile.last_name}</span>
-                            <div><abbr className="_1ht7 timestamp" title="Hôm nay" data-utime="1535593524.915">8:45</abbr></div>
-                        </div>
-                        <div className="_1qt5 _5l-3 item-user-message">
-                            <span className="_1htf item-message-newest"><span>{conversation.body}</span></span>
-                        </div>
-                    </div>
-                </a>
-            </div>
-        </li>
-    )
 }
 
 export default Home;

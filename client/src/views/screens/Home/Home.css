@@ -127,13 +127,15 @@ a {
     margin: 0 10px 0 0;
     padding: 0 20px 0 0;
     position: relative;
+    overflow-y: auto;
 }
 .new-message {
     border-top: 1px solid rgba(0, 0, 0, .10);
     z-index: 201;
     position: fixed;
-    bottom: 0;
-    width: 100%;
+    bottom: 30px;
+    width: 820px;
+    padding-top: 10px;
 }
 #new-message {
     height: 50px;
@@ -143,7 +145,27 @@ a {
     height: 100%;
     float: left;
     z-index: 202;
+    margin-top: 10px;
 }
-.center-messenger {
-    
+.center-messenger input{
+}
+.btn-send-message {
+    height: 50px;
+    width: 80px;
+    float: right;
+}
+.main-user {
+    background-color: #0084ff;
+}
+.logout {
+    display: inline-block;
+    float: right;
+}
+.banner-message-author .title {
+    font-size: 32px;
+    display: inline-block;
+}
+.form-new-message {
+    display: flex;
+    margin: 0 -30px;
 }

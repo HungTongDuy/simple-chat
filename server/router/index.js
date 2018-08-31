@@ -36,7 +36,7 @@ function requireToken(req, res, next) {
                 return res.status(403).json({ success: false, message: 'Failed to authenticate token.' });		
             } else {
                 // if everything is good, save to request for use in other routes
-                console.log('verify successed', decoded);
+                //console.log('verify successed', decoded);
                 req.user = decoded;
                 next();
             }

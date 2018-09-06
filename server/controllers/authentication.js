@@ -12,6 +12,7 @@ const config = require('../config/main');
 const generateToken = (user) => {
     return jwt.sign(user, config.secret, {
         expiresIn: 86400 // expires in 24 hours 
+        // expiresIn: 60
     })
 }
 
@@ -224,5 +225,37 @@ module.exports = {
                 });
             });
         });
+    },
+    reconnect: (req, res, next) => {
+        console.log('reconnect----------', req.params.__user);
+        User.findOne({
+            email: req.body.email
+        }, (err, existingUser) => {
+            if (err) return next(err);
+    
+            if (!existingUser) {
+                return res.status(422).send({
+                    error: 'that email address is do not exist.'
+                });
+            }
+
+            // existingUser.comparePassword(req.body.password, (err, isMatch) => {
+            //     if (err) {
+            //         return done(err);
+            //     }
+            //     if (!isMatch) {
+            //         return done(null, false, {
+            //             error: 'Your login details could not be verified. Please try again.'
+            //         });
+            //     }
+
+                const userInfo = setUserInfo(existingUser);
+    
+                res.status(200).json({
+                    token: generateToken(userInfo),
+                    user: userInfo
+                })
+            // });
+        })
     }
 }

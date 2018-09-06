@@ -11,6 +11,8 @@ exports.getConversations = (req, res, next) => {
     Conversation.find({
             participants: req.user._id
         })
+        .populate('participants')
+        //.select('_id participants.profile.first_name participants.profile.last_name')
         .select('_id')
         .exec((err, conversations) => {
             if (err) {
@@ -23,6 +25,8 @@ exports.getConversations = (req, res, next) => {
             // Set up empty array to hold conversations + most recent message
             const fullConversations = [];
             conversations.forEach((conversation) => {
+                const fullConversation = {};
+                
                 Message.find({
                         conversationId: conversation._id
                     })
@@ -39,8 +43,11 @@ exports.getConversations = (req, res, next) => {
                             });
                             return next(err);
                         }
-                        fullConversations.push(message);
+                        fullConversation.participants = conversation.participants;
+                        fullConversation.new_message = message[0];
+                        fullConversations.push(fullConversation);
                         if (fullConversations.length === conversations.length) {
+                            fullConversations.sort(function(a,b) { return b.new_message.createdAt - a.new_message.createdAt });
                             return res.status(200).json({
                                 conversations: fullConversations
                             });
@@ -51,7 +58,21 @@ exports.getConversations = (req, res, next) => {
 }
 
 exports.getConversation = (req, res, next) => {
-    Message.find({
+    const result = {};
+    Conversation.findById(req.params.conversationId)
+    .populate({
+        path: 'participants'
+    })
+    .exec((err, conversation) => {
+        if (err) {
+            res.send({
+                error: err
+            });
+            return next(err);
+        }
+        
+        result.participants = conversation.participants;
+        Message.find({
             conversationId: req.params.conversationId
         })
         .select('createdAt body author')
@@ -67,15 +88,17 @@ exports.getConversation = (req, res, next) => {
                 });
                 return next(err);
             }
-
+            result.messages = messages;
             return res.status(200).json({
-                conversation: messages
+                conversation: result
             });
         });
+    })
 }
 
 exports.newConversation = (req, res, next) => {
-    if (!req.params.recipient) {
+    console.log('add-new-conver')
+    if (!req.body.recipient) {
         res.status(422).send({
             error: 'Please choose a valid recipient for your message.'
         });
@@ -89,8 +112,11 @@ exports.newConversation = (req, res, next) => {
         return next();
     }
 
+    let recipient = req.body.recipient;
+    recipient.push(req.user._id);
+
     const conversation = new Conversation({
-        participants: [req.user._id, req.params.recipient]
+        participants: recipient
     });
 
     conversation.save((err, newConversation) => {
@@ -101,24 +127,25 @@ exports.newConversation = (req, res, next) => {
             return next(err);
         }
 
-        const message = new Message({
-            conversationId: newConversation._id,
-            body: req.body.composedMessage,
-            author: req.user._id
-        });
-
-        message.save((err, newMessage) => {
-            if (err) {
-                res.send({
-                    error: err
-                });
-                return next(err);
-            }
-
-            return res.status(200).json({
-                message: 'Conversation started!',
-                conversationId: conversation._id
+        if (req.body.composedMessage) {
+            const message = new Message({
+                conversationId: newConversation._id,
+                body: req.body.composedMessage,
+                author: req.user._id
             });
+    
+            message.save((err, newMessage) => {
+                if (err) {
+                    res.send({
+                        error: err
+                    });
+                    return next(err);
+                }
+            });
+        }
+        return res.status(200).json({
+            message: 'Conversation started!',
+            conversationId: conversation._id
         });
     });
 }

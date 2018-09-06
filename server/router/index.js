@@ -73,6 +73,9 @@ module.exports = function (app) {
     // Login route
     authRoutes.post('/login', AuthenticationController.login);
 
+    // Reconnect user
+    authRoutes.post('/reconnect/:__user', AuthenticationController.reconnect);
+
     // Password reset request route (generate/send token)
     authRoutes.post('/forgot-password', AuthenticationController.forgotPassword);
 
@@ -85,6 +88,8 @@ module.exports = function (app) {
 
     // Set user routes as a subgroup/middleware to apiRoutes
     apiRoutes.use('/user', userRoutes);
+
+    // View user list 
 
     // View user profile route
     userRoutes.get('/:userId', requireToken, UserController.viewProfile);
@@ -116,10 +121,10 @@ module.exports = function (app) {
     chatRoutes.get('/:conversationId', requireToken, ChatController.getConversation);
 
     // Send reply in conversation
-    chatRoutes.post('/:conversationId', requireToken, ChatController.sendReply);
+    chatRoutes.post('/rep/:conversationId', requireToken, ChatController.sendReply);
 
     // Start new conversation
-    chatRoutes.post('/new/:recipient', requireToken, ChatController.newConversation);
+    chatRoutes.post('/new', requireToken, ChatController.newConversation);
 
     //= ========================
     // Payment Routes

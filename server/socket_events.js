@@ -20,6 +20,11 @@ module.exports = (io) => {
             io.sockets.in(conversation).emit(socket_key.REFRESH_MESSAGES, conversation);
         });
 
+        socket.on(socket_key.TYPING, (conversation, full_name) => {
+            console.log('typing message ', conversation + ' - ' + full_name);
+            io.sockets.in(conversation).emit(socket_key.TYPING, conversation, full_name);
+        });
+
         socket.on(socket_key.DISCONECT, () => {
             console.log('user disconnected');
         });

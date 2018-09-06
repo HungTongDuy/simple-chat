@@ -24,7 +24,8 @@ let UserSchema = new Schema({
     },
     profile: {
         first_name: { type: String },
-        last_name: { type: String }
+        last_name: { type: String },
+        avatar: { type: String }
     },
     role: {
         type: String,
@@ -38,6 +39,12 @@ let UserSchema = new Schema({
         plan: { type: String },
         activeUntil: { type: Date}
     },
+    friends: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'User'
+        }
+    ],
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date }
 }, {

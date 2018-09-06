@@ -4,5 +4,11 @@ export const socket_key = {
     LEAVE_CONVERSATION: 'leave conversation',
     NEW_MESSAGE: 'new message',
     REFRESH_MESSAGES: 'refresh messages',
-    DISCONECT: 'disconnect'
+    REFRESH_CONVERSATIONS: 'refresh conversations',
+    DISCONECT: 'disconnect',
+    TYPING: 'typing'
+}
+
+export const type_action = {
+    
 }

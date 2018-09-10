@@ -35,9 +35,10 @@ class Home extends Component {
             value: '',
             valueChecked: []
         }
-
-        const auth = JSON.parse(localStorage.Auth);
-        socket.emit(socket_key.ENTER_USER, auth.user._id);
+		if(localStorage.Auth){
+			const auth = JSON.parse(localStorage.Auth);
+			socket.emit(socket_key.ENTER_USER, auth.user._id);
+		}
 
         if(this.props.match.params) {
             const conversationId = this.props.match.params.conversationId;

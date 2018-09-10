@@ -2,13 +2,7 @@ import React from 'react';
 import axios from 'axios';
 import { Container, Row, Button, FormGroup, Input, Form, Alert } from 'reactstrap';
 import './Register.css';
-
-const server = 'http://localhost'
-// const server = 'http://192.168.11.113'
-const port_client = 5002;
-const port_api = 5000;
-const url_client = server + ':' + port_client;
-const url_api = server + ':' + port_api;
+import { url_api, url_client } from '../../../core/constants';
 
 class Register extends React.Component{
     constructor(props) {
@@ -42,6 +36,7 @@ class Register extends React.Component{
             localStorage.setItem('Auth', JSON.stringify(res.data));
             window.location.href = url_client;
         }).catch((err) => {
+            console.log(err);
             if(err.response.status === 422) {
                 console.log(err.response);
                 let messageAlert = err.response.data.error

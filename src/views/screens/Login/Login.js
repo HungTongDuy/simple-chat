@@ -3,12 +3,7 @@ import axios from 'axios';
 import { Container, Row, Button, FormGroup, Input, Form } from 'reactstrap';
 import './Login.css';
 
-const server = 'http://localhost'
-// const server = 'http://192.168.11.113'
-const port_client = 5002;
-const port_api = 5000;
-const url_client = server + ':' + port_client;
-const url_api = server + ':' + port_api;
+import { url_api, url_client } from '../../../core/constants';
 
 class Login extends React.Component{
     constructor(props) {

@@ -26,15 +26,15 @@ class ContentChat extends React.Component{
         const composedMessage = this.props.composedMessage;
         const participants = conversation.participants;
         const messages = conversation.messages;
-        console.log(this.props.isTyping + ' - ' + this.props.textTyping);
+        console.log('conversations_list', conversations_list);
         let title_conversation = '';
         if(Object.keys(conversation).length > 0) {
             participants.map((item, key) => {
                 let full_name = item.profile.first_name + ' ' + item.profile.last_name;
                 if(key + 1 !== participants.length) {
-                    title_conversation = title_conversation + full_name + ', ';
+                    return title_conversation = title_conversation + full_name + ', ';
                 } else {
-                    title_conversation = title_conversation + full_name;
+                    return title_conversation = title_conversation + full_name;
                 }
             })
         }
@@ -43,7 +43,7 @@ class ContentChat extends React.Component{
             <div>
                 <div className="banner-message-author" role="banner">
                     <h1 className="title">{title_conversation}</h1>
-                    <Button onClick={this.handleLogout} className="logout">Đăng xuất</Button>
+                    <Button onClick={this.props.handleLogout} className="logout">Đăng xuất</Button>
                 </div>
                 <div className="content-message">
                     <Form onSubmit={this.props.handleSubmit}>
@@ -51,17 +51,21 @@ class ContentChat extends React.Component{
                         {(conversations_list !== undefined && Object.keys(conversation).length > 0) ? messages.map((item, key) => {
                             const first_name = item.author.profile.first_name;
                             const last_name = item.author.profile.last_name;
+                            let full_name = first_name + " " + last_name + " : "; 
                             const message = item.body;
-                            let main_class = '';
+                            let main_class = 'other-user';
                             let color = 'success';
                             if(item.author._id === JSON.parse(localStorage.Auth).user._id) {
                                 main_class = 'main-user';
                                 color = 'primary';
+                                full_name = '';
                             }
                             return (
-                                <Alert key={key} id={"m_" + (key + 1)} color={color} className={item._id}>
-                                    {first_name + " " + last_name + " : " + message}
-                                </Alert>
+                                <div className="message-row" key={key}>
+                                    <Alert id={"m_" + (key + 1)} color={color} className={main_class + " message-item"}>
+                                        { full_name + message}
+                                    </Alert>
+                                </div>
                             );
                         }) : ''}
                         </div>

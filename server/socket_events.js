@@ -25,6 +25,21 @@ module.exports = (io) => {
             io.sockets.in(conversation).emit(socket_key.TYPING, conversation, full_name);
         });
 
+        socket.on(socket_key.ENTER_USER, (user_id) => {
+            socket.join(user_id);
+            console.log('joined user_id: ', user_id);
+        });
+
+        socket.on(socket_key.LEAVE_USER, (user_id) => {
+            socket.leave(user_id);
+            console.log('left user_id: ', user_id);
+        });
+
+        socket.on(socket_key.NEW_CONVERSATION, (conversation, user_id) => {
+            console.log('new conversation ', user_id);
+            io.sockets.in(user_id).emit(socket_key.NEW_CONVERSATION, conversation);
+        })
+
         socket.on(socket_key.DISCONECT, () => {
             console.log('user disconnected');
         });

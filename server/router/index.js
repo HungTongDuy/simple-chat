@@ -126,6 +126,12 @@ module.exports = function (app) {
     // Start new conversation
     chatRoutes.post('/new', requireToken, ChatController.newConversation);
 
+    // 
+    chatRoutes.post('/m/view', requireToken, ChatController.viewMessage);
+
+    // Delete conversation and message
+    chatRoutes.delete('/del/:conversationId', requireToken, ChatController.deleteConversation);
+
     //= ========================
     // Payment Routes
     //= ========================

@@ -23,4 +23,9 @@ const MessageSchema = new mongoose.Schema({
     timestamps: true
 })
 
+MessageSchema.methods.viewMessage = function(user) {
+    this.viewer.push(user)
+    return this.save()
+}
+
 module.exports = mongoose.model('Message', MessageSchema);

@@ -51,7 +51,6 @@
 .item-content {
     flex: 1;
     min-width: 0;
-    padding-left: 12px;
     display: flex;
 }
 .item-content:hover {
@@ -92,8 +91,11 @@ a {
     white-space: nowrap;
     color: rgba(0, 0, 0, 1);
     font-size: 15px;
-    font-weight: 400;
+    font-weight: bold;
     line-height: 1.4;
+}
+.viewed .user-name {
+    font-weight: 400;
 }
 .item-name .timestamp {
     color: rgba(0, 0, 0, .40);
@@ -110,11 +112,15 @@ a {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    color: rgba(153, 153, 153, 1);
     font-size: 13px;
-    font-weight: 400;
+    font-weight: bold;
     height: 18px;
     margin-right: 20px;
+    color: #000;
+}
+.viewed .item-message-newest {
+    font-weight: 400;
+    color: rgba(153, 153, 153, 1);
 }
 .banner-message-author {
     border-bottom: 1px solid rgba(0, 0, 0, .10);
@@ -141,7 +147,7 @@ a {
     /* position: fixed; */
     bottom: 30px;
     width: 820px;
-    margin-top: 30px;
+    margin-top: 38px;
     justify-content: flex-end;
 }
 #new-message {
@@ -186,4 +192,22 @@ a {
 .banner-messenger .title {
     display: inline-block;
     height: 20px;
+}
+.message-row {
+    float: left;
+    display: block;
+    width: 100%;
+}
+.message-item {
+    max-width: 55%;
+    margin: 2px 0;
+    padding: 6px 12px;
+}
+.main-user {
+    float: right;
+    clear: right;
+}
+.other-user {
+    float: left;
+    clear: left;
 }

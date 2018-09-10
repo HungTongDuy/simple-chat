@@ -1,29 +1,20 @@
 import React, { Component } from 'react';
 import './Home.css';
 import axios from 'axios';
-import io from 'socket.io-client';
 import { CustomInput, Container, Row, Col, Button, FormGroup, Input, Label, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 
 import ConversationList from '../../components/ConversationList';
 import ContentChat from "../../components/ContentChat";
 
 import { socket_key } from '../../../core/constants';
+import { socket } from '../../../core/socket_connect';
+import { url_api, url_client } from '../../../core/constants';
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faComment } from '@fortawesome/free-solid-svg-icons';
 
 library.add(faComment);
-
-
-const server = 'http://localhost'
-// const server = 'http://192.168.11.113'
-const port_client = 5002;
-const port_api = 5000;
-const url_client = server + ':' + port_client;
-const url_api = server + ':' + port_api;
-
-const socket = io.connect(url_api);
 
 const placeholderString = 'Nhập tin nhắn...';
 
@@ -44,6 +35,9 @@ class Home extends Component {
             value: '',
             valueChecked: []
         }
+
+        const auth = JSON.parse(localStorage.Auth);
+        socket.emit(socket_key.ENTER_USER, auth.user._id);
 
         if(this.props.match.params) {
             const conversationId = this.props.match.params.conversationId;
@@ -74,6 +68,17 @@ class Home extends Component {
                 }
             })
         });
+
+        socket.on(socket_key.NEW_CONVERSATION, (conversation) => {
+            console.log('new conversation client: ', conversation);
+            axios.get(url_api + '/api/chat/', { 
+                headers : {
+                    "x-access-token": JSON.parse(localStorage.Auth).token
+                }
+            }).then((res) => {
+                this.setState({ data: res.data });
+            })
+        })
     }
 
     // async getData() {
@@ -102,7 +107,10 @@ class Home extends Component {
                 }
             }).then((res) => {
                 this.setState({ data: res.data });
-                console.log('res--- ', res)
+                console.log('res--- ', res);
+                if(this.props.match.params === undefined || Object.keys(this.props.match.params).length === 0) {
+                    window.location.href = url_client + '/t/' + res.data.conversations[0].new_message.conversationId;
+                }
                 if(this.props.match.params) {
                     const conversationId = this.props.match.params.conversationId;
                     if(conversationId) {
@@ -117,12 +125,8 @@ class Home extends Component {
                         })
                     }
                 }
-                //console.log('Error-response: ', err.response)
             }).catch((err) => {
-                console.log('Error: ', err.response);
                 if(err.response !== undefined && err.response.status === 403) {
-                    //localStorage.removeItem('Auth');
-                    // window.location.href = url_client + '/login';
                     const auth = JSON.parse(localStorage.Auth);
                     let data = {
                         email: auth.user.email
@@ -138,12 +142,6 @@ class Home extends Component {
 
     componentDidMount = () => {
         window.addEventListener('scroll', this.handleScroll);
-        if(this.props.match.params) {
-            console.log('scrollIntoView');
-            var n = this.state.conversation.length;
-            var objDiv = document.getElementById(n.toString());
-            // this.refs[30].scrollIntoView();
-        }
     }
 
     handleScroll = (event) => {
@@ -156,7 +154,6 @@ class Home extends Component {
     }
 
     handleChange = (e) => {
-        console.log(e.target.value);
         if(this.props.match.params) {
             const conversationId = this.props.match.params.conversationId;
             const auth =  JSON.parse(localStorage.Auth);
@@ -172,7 +169,6 @@ class Home extends Component {
     }
 
     handleSubmit = (e) => {
-        console.log('submit');
         e.preventDefault();
         if(this.props.match.params) {
             const conversationId = this.props.match.params.conversationId;
@@ -184,7 +180,6 @@ class Home extends Component {
                 }
             }).then((res) => {
                 if(res.status === 200) {
-                    console.log('status-200OK');
                     socket.emit(socket_key.NEW_MESSAGE, conversationId);
                     this.setState({
                         composedMessage: {
@@ -202,7 +197,6 @@ class Home extends Component {
     }
 
     handleClearPlaceholder = (e) => {
-        console.log('placeholder: ', e.target.value)
         if(e.target.value === placeholderString) {
             this.setState({
                 composedMessage: {
@@ -237,9 +231,10 @@ class Home extends Component {
     }
 
     handleNewConversation = () => {
+        const valueChecked = this.state.valueChecked;
         let data = {
             composedMessage: document.getElementById('textMessage').value,
-            recipient: this.state.valueChecked
+            recipient: valueChecked
         }
 
         axios.post(url_api + '/api/chat/new/' , data,
@@ -249,7 +244,11 @@ class Home extends Component {
             }
         }).then((res) => {
             if(res.status === 200) {
-                console.log('status-200OK');
+                valueChecked.map((item, key) => {
+                    console.log('emit new conversation: ', item);
+                    return socket.emit(socket_key.NEW_CONVERSATION, res.data.conversationId, item);
+                })
+                
                 socket.emit(socket_key.NEW_MESSAGE, res.data.conversationId);
                 window.location.href = url_client + '/t/' + res.data.conversationId;
             }
@@ -270,6 +269,7 @@ class Home extends Component {
         const conversationsList = this.state.data.conversations;
         const conversation = this.state.conversation;
         const composedMessage = this.state.composedMessage;
+        console.log(this.state.valueChecked);
         let isTyping = false;
         let text = '';
         socket.on(socket_key.TYPING, (conversation, full_name) => {
@@ -289,7 +289,7 @@ class Home extends Component {
                             <Button className="new-conversation" onClick={this.toggle}>Tin nhắn mới</Button>
                         </div>
                         <div className="list-user-chat">
-                            <ul aria-label="Danh sách cuộc trò chuyện" role="grid">
+                            <div aria-label="Danh sách cuộc trò chuyện" role="grid">
                                 {(conversationsList !== undefined && conversationsList.length > 0) ? conversationsList.map((item, key) => {
                                     return (
                                         <ConversationList 
@@ -300,7 +300,7 @@ class Home extends Component {
                                     )
                                 }) : ''}
                                 
-                            </ul>
+                            </div>
                         </div>
                     </Col>
                     <Col className="center-messenger">
@@ -310,6 +310,7 @@ class Home extends Component {
                             composedMessage={composedMessage}
                             handleSubmit={this.handleSubmit}
                             handleChange={this.handleChange}
+                            handleLogout={this.handleLogout}
                             handleClearPlaceholder={this.handleClearPlaceholder}
                             isTyping={isTyping}
                             textTyping={text}

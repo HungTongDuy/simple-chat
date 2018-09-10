@@ -26,7 +26,7 @@ exports.getConversations = (req, res, next) => {
             const fullConversations = [];
             conversations.forEach((conversation) => {
                 const fullConversation = {};
-                
+
                 Message.find({
                         conversationId: conversation._id
                     })
@@ -47,7 +47,9 @@ exports.getConversations = (req, res, next) => {
                         fullConversation.new_message = message[0];
                         fullConversations.push(fullConversation);
                         if (fullConversations.length === conversations.length) {
-                            fullConversations.sort(function(a,b) { return b.new_message.createdAt - a.new_message.createdAt });
+                            fullConversations.sort(function (a, b) {
+                                return b.new_message.createdAt - a.new_message.createdAt
+                            });
                             return res.status(200).json({
                                 conversations: fullConversations
                             });
@@ -60,40 +62,40 @@ exports.getConversations = (req, res, next) => {
 exports.getConversation = (req, res, next) => {
     const result = {};
     Conversation.findById(req.params.conversationId)
-    .populate({
-        path: 'participants'
-    })
-    .exec((err, conversation) => {
-        if (err) {
-            res.send({
-                error: err
-            });
-            return next(err);
-        }
-        
-        result.participants = conversation.participants;
-        Message.find({
-            conversationId: req.params.conversationId
-        })
-        .select('createdAt body author')
-        .sort('-createAt')
         .populate({
-            path: 'author',
-            select: 'profile.first_name profile.last_name'
+            path: 'participants'
         })
-        .exec((err, messages) => {
+        .exec((err, conversation) => {
             if (err) {
                 res.send({
                     error: err
                 });
                 return next(err);
             }
-            result.messages = messages;
-            return res.status(200).json({
-                conversation: result
-            });
-        });
-    })
+
+            Message.find({
+                    conversationId: req.params.conversationId
+                })
+                .select('createdAt body author')
+                .sort('-createAt')
+                .populate({
+                    path: 'author',
+                    select: 'profile.first_name profile.last_name'
+                })
+                .exec((err, messages) => {
+                    if (err) {
+                        res.send({
+                            error: err
+                        });
+                        return next(err);
+                    }
+                    result.participants = conversation.participants;
+                    result.messages = messages;
+                    return res.status(200).json({
+                        conversation: result
+                    });
+                });
+        })
 }
 
 exports.newConversation = (req, res, next) => {
@@ -133,7 +135,7 @@ exports.newConversation = (req, res, next) => {
                 body: req.body.composedMessage,
                 author: req.user._id
             });
-    
+
             message.save((err, newMessage) => {
                 if (err) {
                     res.send({
@@ -170,3 +172,75 @@ exports.sendReply = (req, res, next) => {
         });
     });
 };
+
+exports.deleteConversation = (req, res, next) => {
+    const conversationId = req.params.conversationId;
+    Message.find({
+            conversationId: conversationId
+        })
+        .select('_id')
+        .exec((err, message) => {
+            if (err) {
+                res.send({
+                    error: err
+                });
+                return next(err);
+            }
+            message.map((item) => {
+                Message.findOneAndDelete({
+                    _id: item._id
+                }).exec((err) => {
+                    if (err) {
+                        res.send({
+                            error: err
+                        });
+                        return next(err);
+                    }
+                    next()
+                })
+            })
+            Conversation.findById(conversationId)
+            .exec((err, conversation) => {
+                if (err) {
+                    res.send({
+                        error: err
+                    });
+                    return next(res);
+                }
+                if(!conversation) {
+                    return res.status(404).json({
+                        message: "Not found conversation"
+                    })
+                }
+                Conversation.findOneAndDelete({
+                    _id: conversationId
+                }).exec((err) => {
+                    if (err) {
+                        res.send({
+                            error: err
+                        });
+                        return res;
+                    }
+                    return res.status(200).json({
+                        message: "Delete conversation success"
+                    })
+                })
+            })
+        })
+}
+
+exports.viewMessage = (req, res, next) => {
+    Message.findById(req.body.message_id)
+    .exec((err, message) => {
+        if (err) {
+            res.send({
+                error: err
+            });
+            return next(res);
+        }
+        return message.viewMessage(req.body.user_id)
+        .then(() => {
+            res.json({ message: 'Done' })
+        })
+    })
+}

@@ -28,7 +28,7 @@ class ConversationList extends Component {
     render() {
         const new_message = this.props.conversation.new_message;
         const participants = this.props.conversation.participants;
-
+        console.log('new_message', new_message);
         let title_conversation = '';
         participants.map((item, key) => {
             let full_name = item.profile.first_name + ' ' + item.profile.last_name;
@@ -38,13 +38,13 @@ class ConversationList extends Component {
                 return title_conversation = title_conversation + full_name;
             }
         })
-        let class_viewed = 'viewed';
+        let class_viewed = '';
         if(new_message.viewer !== undefined) {
-            if(new_message.viewer.indexOf(JSON.parse(localStorage.Auth).user._id) > -1) {
-                console.log('new_message');
-                class_viewed = '';
+            if(new_message.viewer.indexOf(JSON.parse(localStorage.Auth).user._id) >= 0) {
+                console.log('new_message.viewed');
+                class_viewed = 'viewed';
             }
-        } 
+        }
         // if(item.author._id === JSON.parse(localStorage.Auth).user._id) {
 
         // }

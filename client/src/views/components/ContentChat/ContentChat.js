@@ -1,6 +1,9 @@
 import React from 'react';
+import axios from 'axios';
 import { Col, Button, Input, Form, Alert } from 'reactstrap';
 import scrollIntoView from 'scroll-into-view-if-needed';
+
+import { url_api } from '../../../core/constants'
 
 class ContentChat extends React.Component{
     constructor(props) {
@@ -62,7 +65,7 @@ class ContentChat extends React.Component{
                             }
                             return (
                                 <div className="message-row" key={key}>
-                                    <Alert id={"m_" + (key + 1)} color={color} className={main_class + " message-item"}>
+                                    <Alert id={"m_" + (key + 1)} color={color} onClick={(e) => this.props.handleViewMessage(item._id)} className={main_class + " message-item"}>
                                         { full_name + message}
                                     </Alert>
                                 </div>

@@ -24,7 +24,9 @@ const MessageSchema = new mongoose.Schema({
 })
 
 MessageSchema.methods.viewMessage = function(user) {
-    this.viewer.push(user)
+    if(this.viewer.indexOf(user) < 0) {
+        this.viewer.push(user)
+    }
     return this.save()
 }
 

@@ -131,7 +131,7 @@ class Home extends Component {
                     let data = {
                         email: auth.user.email
                     }
-                    axios.post('http://localhost:5000/api/auth/reconnect/__user=' + auth.user._id, data).then((res) => {
+                    axios.post(url_api + '/api/auth/reconnect/__user=' + auth.user._id, data).then((res) => {
                         localStorage.setItem('Auth', JSON.stringify(res.data));
                         window.location.reload();
                     })
@@ -265,6 +265,28 @@ class Home extends Component {
         })
     }
 
+    handleViewMessage = (val) => {
+        console.log(val);
+        const auth = JSON.parse(localStorage.Auth);
+        let data = {
+            message_id: val,
+            user_id: auth.user._id
+        }
+        axios.post(url_api + '/api/chat/m/view', data, {
+            headers : {
+                "x-access-token": auth.token
+            }
+        }).then((res) => {
+            axios.get(url_api + '/api/chat/', { 
+                headers : {
+                    "x-access-token": JSON.parse(localStorage.Auth).token
+                }
+            }).then((res) => {
+                this.setState({ data: res.data });
+            })
+        })
+    }
+
     render() {
         const conversationsList = this.state.data.conversations;
         const conversation = this.state.conversation;
@@ -314,6 +336,7 @@ class Home extends Component {
                             handleClearPlaceholder={this.handleClearPlaceholder}
                             isTyping={isTyping}
                             textTyping={text}
+                            handleViewMessage={this.handleViewMessage}
                         />
                     </Col>
                     <Modal isOpen={this.state.modal} toggle={this.toggle}>

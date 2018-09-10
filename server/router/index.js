@@ -68,6 +68,12 @@ module.exports = function (app) {
     apiRoutes.use('/auth', authRoutes);
 
     // Registration route
+    // {
+    //     "email": "user_04@gmail.com",
+    //     "first_name": "User",
+    //     "last_name": "03",
+    //     "password": "admin"
+    // }
     authRoutes.post('/register', AuthenticationController.register);
 
     // Login route
@@ -121,12 +127,24 @@ module.exports = function (app) {
     chatRoutes.get('/:conversationId', requireToken, ChatController.getConversation);
 
     // Send reply in conversation
+    // api/chat/rep/5b8693d89a4cde27302c9f92
+    // {
+    //     "composedMessage": "mình là Hưng Duy"
+    // }
     chatRoutes.post('/rep/:conversationId', requireToken, ChatController.sendReply);
 
     // Start new conversation
+    // {
+    //     "composedMessage": "Hello",
+    //     "recipient": ["5b868e533f19a23b1c4e4997","5b868ec83f19a23b1c4e4998","5b868f8b3355b042301d3039","5b8f97b18250bd51c82d4f03"]
+    // }
     chatRoutes.post('/new', requireToken, ChatController.newConversation);
 
-    // 
+    // Viewed message
+    // {
+    //     "message_id": "5b922649edfae95798431b6e",
+    //     "user_id": "5b867a36b290193c94ee24fa"
+    // }
     chatRoutes.post('/m/view', requireToken, ChatController.viewMessage);
 
     // Delete conversation and message

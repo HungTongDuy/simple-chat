@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 import './Home.css';
 import axios from 'axios';
-import { CustomInput, Container, Row, Col, Button, FormGroup, Input, Label, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
+import { Container, Row, Col, Button } from 'reactstrap';
 
 import ConversationList from '../../components/ConversationList';
 import ContentChat from "../../components/ContentChat";
+import DialogNewConversation from "../../components/DialogNewConversation";
 
 import { socket_key } from '../../../core/constants';
 import { socket } from '../../../core/socket_connect';
@@ -340,26 +341,13 @@ class Home extends Component {
                             handleViewMessage={this.handleViewMessage}
                         />
                     </Col>
-                    <Modal isOpen={this.state.modal} toggle={this.toggle}>
-                        <ModalHeader toggle={this.toggle}>Tạo mới cuộc trò chuyện</ModalHeader>
-                        <ModalBody>
-                            <FormGroup>
-                                <Label for="exampleEmail">Chọn bạn để trò chuyện</Label>
-                                <CustomInput onChange={this.handleChangeCheckbox} type="checkbox" id="5b867a36b290193c94ee24fa" value="5b867a36b290193c94ee24fa" label="Hung Tong" />
-                                <CustomInput onChange={this.handleChangeCheckbox} type="checkbox" id="5b868e533f19a23b1c4e4997" value="5b868e533f19a23b1c4e4997" label="User 1" />
-                                <CustomInput onChange={this.handleChangeCheckbox} type="checkbox" id="5b868ec83f19a23b1c4e4998" value="5b868ec83f19a23b1c4e4998" label="User 2" />
-                                <CustomInput onChange={this.handleChangeCheckbox} type="checkbox" id="5b868f8b3355b042301d3039" value="5b868f8b3355b042301d3039" label="User 3" />
-                                <CustomInput onChange={this.handleChangeCheckbox} type="checkbox" id="5b8f97b18250bd51c82d4f03" value="5b8f97b18250bd51c82d4f03" label="User 4" />
-                            </FormGroup>
-                            <FormGroup>
-                                <Input type="text" name="textMessage" id="textMessage" placeholder={placeholderString} />
-                            </FormGroup>
-                        </ModalBody>
-                        <ModalFooter>
-                            <Button color="primary" onClick={this.toggle}>Hủy</Button>
-                            <Button color="primary" onClick={this.handleNewConversation}>Nhắn tin</Button>
-                        </ModalFooter>
-                    </Modal>
+                    <DialogNewConversation
+                        modal={this.state.modal}
+                        placeholderString={this.state.placeholderString}
+                        handleChangeCheckbox={this.handleChangeCheckbox}
+                        toggle={this.toggle}
+                        handleNewConversation={this.handleNewConversation}
+                    />
                 </Row>
             </Container>
         );

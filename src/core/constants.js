@@ -13,8 +13,8 @@ export const socket_key = {
 }
 
 const server = 'http://localhost'
-const port_client = 7002;
-const port_api = 6000;
+export const port_client = 5002;
+export const port_api = 5000;
 
 export const url_client = server + ':' + port_client;
 export const url_api = server + ':' + port_api;

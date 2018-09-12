@@ -16,6 +16,8 @@ const server = 'http://localhost'
 export const port_client = 5002;
 export const port_api = 5000;
 
-export const url_client = server + ':' + port_client;
-export const url_api = server + ':' + port_api;
+// export const url_client = server + ':' + port_client;
+export const url_client = 'https://simple-chat-message.herokuapp.com';
+// export const url_api = server + ':' + port_api;
+export const url_api = 'https://simple-chat-room-api.herokuapp.com';
 
